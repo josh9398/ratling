@@ -5,13 +5,18 @@ before:
     # You may remove this if you don't use go modules.
     - go mod tidy
 builds:
-  - binary: ratling
+  - main: '.'
+    binary: ratling
     env:
       - CGO_ENABLED=0
     goos:
       - linux
       - windows
       - darwin
+    ldflags:
+      - -s -w -X github.com/josh9398/ratling/cmd.version={{.Version}}
+      - -X github.com/josh9398/ratling/cmd.commit={{.Commit}}
+      - -X github.com/josh9398/ratling/cmd.date={{.Date}}
 archives:
   - replacements:
       darwin: Darwin

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/josh9398/ratling/pkg/cmd"
+	"github.com/josh9398/ratling/cmd"
 )
 
 func main() {

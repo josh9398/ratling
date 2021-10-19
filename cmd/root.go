@@ -12,7 +12,7 @@ import (
 var (
 	logger *zap.SugaredLogger
 
-	binary    = "ratling"
+	binary     = "ratling"
 	root_short = fmt.Sprintf("%s command line", binary)
 	root_long  = "Encrypt, chunk and send data."
 
@@ -20,9 +20,9 @@ var (
 	verbose bool
 
 	// vars injected by goreleaser at build time
-	version = "unknown"
-	commit  = "unknown"
-	date    = "unknown"
+	version   = "unknown"
+	commit    = "unknown"
+	date      = "unknown"
 )
 
 var rootCmd = &cobra.Command{
