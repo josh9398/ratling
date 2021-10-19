@@ -7,8 +7,8 @@ import (
 )
 
 var (
-	version_short = fmt.Sprintf("Print the version number of %s", appName)
-	version_long  = fmt.Sprintf("All software has versions. This is %s's", appName)
+	version_short = fmt.Sprintf("Print the version number of %s", binary)
+	version_long  = fmt.Sprintf("All software has versions. This is %s's", binary)
 )
 
 func init() {

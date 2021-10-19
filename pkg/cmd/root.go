@@ -12,8 +12,8 @@ import (
 var (
 	logger *zap.SugaredLogger
 
-	appName    = "ratling"
-	root_short = fmt.Sprintf("%s command line", appName)
+	binary    = "ratling"
+	root_short = fmt.Sprintf("%s command line", binary)
 	root_long  = "Encrypt, chunk and send data."
 
 	// flags
@@ -26,7 +26,7 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   appName,
+	Use:   binary,
 	Short: root_short,
 	Long:  root_long,
 }
