@@ -14,7 +14,10 @@ var (
 
 	appName    = "ratling"
 	root_short = fmt.Sprintf("%s command line", appName)
-	root_long  = "\nEncrypt, chunk and send data."
+	root_long  = "Encrypt, chunk and send data."
+
+	// flags
+	verbose bool
 
 	// vars injected by goreleaser at build time
 	version = "unknown"
@@ -33,7 +36,11 @@ func Execute() error {
 	var err error
 
 	// log to stderr
-	logger, err = NewLogger("info", "console")
+	if verbose {
+		logger, err = NewLogger("debug", "console")
+	} else {
+		logger, err = NewLogger("info", "console")
+	}
 	if err != nil {
 		log.Fatalf("can't initialize zap logger: %v", err)
 	}
@@ -41,6 +48,10 @@ func Execute() error {
 	defer logger.Sync()
 
 	return rootCmd.Execute()
+}
+
+func init() {
+	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
 }
 
 // NewLogger creates a logger
