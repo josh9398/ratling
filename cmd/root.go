@@ -20,9 +20,9 @@ var (
 	verbose bool
 
 	// vars injected by goreleaser at build time
-	version   = "unknown"
-	commit    = "unknown"
-	date      = "unknown"
+	version = "unknown"
+	commit  = "unknown"
+	date    = "unknown"
 )
 
 var rootCmd = &cobra.Command{
