@@ -18,6 +18,7 @@ var (
 
 	// flags
 	verbose bool
+	cache   string
 
 	// vars injected by goreleaser at build time
 	version = "unknown"
@@ -52,6 +53,7 @@ func Execute() error {
 
 func init() {
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
+	rootCmd.PersistentFlags().StringVarP(&cache, "cache", "c", fmt.Sprintf("~/.%s", binary), "cache location")
 }
 
 // NewLogger creates a logger
