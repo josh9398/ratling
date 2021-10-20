@@ -37,6 +37,7 @@ var sendCmd = &cobra.Command{
 			log.Fatalf("cannot open file: %v", err)
 		}
 		defer file.Close()
+		logger.Debugf("opened file: %s", fileToBeChunked)
 
 		fileInfo, err := file.Stat()
 		if err != nil {
@@ -44,19 +45,27 @@ var sendCmd = &cobra.Command{
 		}
 
 		var fileSize int64 = fileInfo.Size()
-		logger.Infof("file size: %d", fileSize)
+		logger.Debugf("file size: %d", fileSize)
 
 		if fileSize < minChunkBytes {
-			minChunkBytes = fileSize
+			logger.Infof("file %s too small to be chunked", file.Name())
+			if err := send(file, "TODO"); err != nil {
+				log.Fatalf("error sending file: %v", err)
+			}
+			return nil
 		}
 		if maxChunkBytes <= minChunkBytes {
 			log.Fatalf("max-chunk too small, must be over: %d", minChunkBytes)
 		}
 
 		rand.Seed(time.Now().UnixNano())
-
 		logger.Info(rand.Int63n(maxChunkBytes-minChunkBytes) + minChunkBytes)
 
 		return nil
 	},
 }
+
+func send(file *os.File, dest string) error {
+	logger.Infof("sending file %s to %s", file.Name(), dest)
+	return nil
+} 
