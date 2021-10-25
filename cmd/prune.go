@@ -17,7 +17,7 @@ func init() {
 var pruneCmd = &cobra.Command{
 	Use:   "prune",
 	Short: `prune local cache`,
-	Long:  `files sent are chunked into a cache, this command prunes that cache`,
+	Long:  `large files are chunked & stored in a cache, this command prunes that cache`,
 	Run: func(cmd *cobra.Command, args []string) {
 		logger.Info("prunning...")
 	},

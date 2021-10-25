@@ -1,26 +1,30 @@
 package cmd
 
 import (
+	"fmt"
+	"io"
 	"log"
 	"math/rand"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/spf13/cobra"
+	"go.uber.org/zap"
 )
 
 var (
-	minChunkBytes int64 = 1000000
-
 	// flags
 	fileToBeChunked string
+	minChunkBytes   int64
 	maxChunkBytes   int64
 )
 
 func init() {
 	rootCmd.AddCommand(sendCmd)
 	sendCmd.Flags().StringVarP(&fileToBeChunked, "file", "f", "", "path of file to send")
-	sendCmd.Flags().Int64VarP(&maxChunkBytes, "max-chunk", "m", 50000000, "max chunk size in bytes")
+	sendCmd.Flags().Int64VarP(&minChunkBytes, "min-chunk", "m", 1000000, "min chunk size in bytes")
+	sendCmd.Flags().Int64VarP(&maxChunkBytes, "max-chunk", "M", 50000000, "max chunk size in bytes")
 }
 
 var sendCmd = &cobra.Command{
@@ -32,40 +36,77 @@ var sendCmd = &cobra.Command{
 			log.Fatal("no file supplied")
 		}
 
-		file, err := os.Open(fileToBeChunked)
+		fi, err := os.Open(fileToBeChunked)
 		if err != nil {
 			log.Fatalf("cannot open file: %v", err)
 		}
-		defer file.Close()
+		defer fi.Close()
 		logger.Debugf("opened file: %s", fileToBeChunked)
 
-		fileInfo, err := file.Stat()
+		fiInfo, err := fi.Stat()
 		if err != nil {
 			log.Fatalf("cannot stat file: %v", err)
 		}
 
-		var fileSize int64 = fileInfo.Size()
-		logger.Debugf("file size: %d", fileSize)
+		var fiName = filepath.Base(fileToBeChunked)
+		var fiSize int64 = fiInfo.Size()
+		logger.Debugf("file size: %d", fiSize)
 
-		if fileSize < minChunkBytes {
-			logger.Infof("file %s too small to be chunked", file.Name())
-			if err := send(file, "TODO"); err != nil {
-				log.Fatalf("error sending file: %v", err)
+		// small files
+		if fiSize <= minChunkBytes {
+			logger.Debugf("file %s too small to chunk, under %d bytes", fiName, minChunkBytes)
+			if err := send(fi, "TODO"); err != nil {
+				logger.Fatalf("error sending file: %v", err)
 			}
 			return nil
 		}
-		if maxChunkBytes <= minChunkBytes {
-			log.Fatalf("max-chunk too small, must be over: %d", minChunkBytes)
+
+		var cache = fmt.Sprintf("%s/%s", cacheDir, fiName)
+		if err = os.MkdirAll(cache, os.ModePerm); err != nil {
+			logger.Fatalf("cannot create cache: %v", err)
 		}
 
-		rand.Seed(time.Now().UnixNano())
-		logger.Info(rand.Int63n(maxChunkBytes-minChunkBytes) + minChunkBytes)
+		var part int64 = 0
+		for {
+			rand.Seed(time.Now().UnixNano())
+			randSize := rand.Int63n((maxChunkBytes - minChunkBytes) + minChunkBytes)
 
+			// read a chunk
+			buf := make([]byte, randSize)
+			n, err := fi.Read(buf)
+			if err != nil && err != io.EOF {
+				logger.Fatalf("error reading file: %v", err)
+			}
+			if n == 0 {
+				break
+			}
+
+			// create cache file
+			foPath := fmt.Sprintf("%s/%s_%d", cache, fiName, part)
+			fo, err := os.Create(foPath)
+			if err != nil {
+				log.Fatalf("cannot create %s in cache: %v", foPath, err)
+			}
+			defer fo.Close()
+
+			// write a chunk
+			if _, err := fo.Write(buf[:n]); err != nil {
+				log.Fatalf("cannot write to %s: %v", foPath, err)
+			}
+			logger.Debugf("chunked file: %s", fiName,
+				zap.Int64("part", part),
+				zap.Int("size", int(randSize)),
+				zap.String("path", foPath),
+			)
+
+			send(fo, "TODO")
+			part++
+		}
 		return nil
 	},
 }
 
-func send(file *os.File, dest string) error {
-	logger.Infof("sending file %s to %s", file.Name(), dest)
+func send(fo *os.File, dest string) error {
+	logger.Infof("sending file %s to %s", fo.Name(), dest)
 	return nil
-} 
+}

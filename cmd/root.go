@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -17,8 +18,8 @@ var (
 	root_long  = "Encrypt, chunk and send data."
 
 	// flags
-	verbose bool
-	cache   string
+	verbose  bool
+	cacheDir string
 
 	// vars injected by goreleaser at build time
 	version = "unknown"
@@ -52,8 +53,13 @@ func Execute() error {
 }
 
 func init() {
+	usrHomeDir, err := os.UserHomeDir()
+    if err != nil {
+        logger.Fatalf("cannot get home directory", err)
+	}
+
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
-	rootCmd.PersistentFlags().StringVarP(&cache, "cache", "c", fmt.Sprintf("~/.%s", binary), "cache location")
+	rootCmd.PersistentFlags().StringVarP(&cacheDir, "cache", "c", fmt.Sprintf("%s/.%s", usrHomeDir, binary), "path of cache")
 }
 
 // NewLogger creates a logger
