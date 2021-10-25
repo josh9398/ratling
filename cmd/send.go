@@ -102,11 +102,15 @@ var sendCmd = &cobra.Command{
 			send(fo, "TODO")
 			part++
 		}
+
+		logger.Debugf("finished chunking file %s", fiName,
+			zap.Int64("parts", part),
+		)	
 		return nil
 	},
 }
 
 func send(fo *os.File, dest string) error {
-	logger.Infof("sending file %s to %s", fo.Name(), dest)
+	logger.Debugf("sending file %s to %s", fo.Name(), dest)
 	return nil
 }
